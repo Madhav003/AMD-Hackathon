@@ -174,7 +174,7 @@ This can evolve into:
 
 ## 🔹 Security & NLP Engineers
 
-**Dhruvi (Lead), Madhav (Secondary), Mahir**
+**Dhruvi, Madhav, Mahir**
 
 ### Responsibilities:
 
@@ -196,7 +196,7 @@ This can evolve into:
 
 ## 🔹 Frontend & Cloud Deployment
 
-**Dhruvi, Mahi**
+**Dhruvi, Mahir**
 
 ### Responsibilities:
 
