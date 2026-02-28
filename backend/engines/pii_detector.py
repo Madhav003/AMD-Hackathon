@@ -306,3 +306,12 @@ class PIIDetector:
 
 # Singleton instance
 pii_detector = PIIDetector()
+
+
+def reload_detector():
+    """Reload the PII detector to pick up new patterns from settings.json."""
+    global _analyzer, _anonymizer, pii_detector
+    _analyzer = None
+    _anonymizer = None
+    pii_detector._analyzer = _get_analyzer()
+    pii_detector._anonymizer = _get_anonymizer()

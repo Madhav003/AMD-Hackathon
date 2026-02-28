@@ -223,6 +223,8 @@ async def chat_proxy(request: ChatRequest):
     if use_gemini:
         try:
             from google import genai
+            from google.genai import types
+            
             client = genai.Client(api_key=settings.GEMINI_API_KEY)
             
             model_name = request.model or settings.GEMINI_MODEL
@@ -230,16 +232,38 @@ async def chat_proxy(request: ChatRequest):
             if not model_name.startswith("models/"):
                 model_name = f"models/{model_name}"
 
-            full_prompt = safe_prompt
-            if request.system_prompt:
-                full_prompt = f"[System]: {request.system_prompt}\n\n[User]: {safe_prompt}"
+            # Build conversation contents with history
+            contents = []
+            
+            # Add system instruction if provided
+            system_instruction = request.system_prompt or (
+                "You are PromptShield AI, a helpful and secure academic assistant. "
+                "You provide accurate, educational responses while maintaining user privacy. "
+                "Be concise but thorough. If asked about yourself, explain that you're a "
+                "privacy-focused AI that scans for PII and injection attacks."
+            )
+            
+            # Add conversation history
+            for msg in request.conversation_history:
+                role = "user" if msg.role == "user" else "model"
+                contents.append(types.Content(
+                    role=role,
+                    parts=[types.Part.from_text(text=msg.content)]
+                ))
+            
+            # Add current message
+            contents.append(types.Content(
+                role="user",
+                parts=[types.Part.from_text(text=safe_prompt)]
+            ))
 
             response = client.models.generate_content(
                 model=model_name,
-                contents=full_prompt,
-                config={
-                    "temperature": request.temperature or 0.7,
-                },
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    temperature=request.temperature or 0.7,
+                    system_instruction=system_instruction,
+                ),
             )
             response_text = response.text
             completion_tokens = _estimate_tokens(response_text)

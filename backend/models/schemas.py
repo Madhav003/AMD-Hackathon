@@ -77,6 +77,13 @@ class InjectionScanResult(BaseModel):
     details: str
 
 
+# ── Conversation Memory ────────────────────────────────────────────────
+
+class Message(BaseModel):
+    role: str  # "user" or "assistant"
+    content: str
+
+
 # ── API Request / Response ─────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
@@ -84,6 +91,7 @@ class ChatRequest(BaseModel):
     model: Optional[str] = None
     temperature: Optional[float] = Field(default=0.7, ge=0, le=2)
     system_prompt: Optional[str] = None
+    conversation_history: list[Message] = []  # Previous messages for context
 
 
 class ScanRequest(BaseModel):

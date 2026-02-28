@@ -57,6 +57,12 @@
                 </svg>
                 <span>Dashboard</span>
             </button>
+            <button class="nav-tab" data-view="settings" id="tabSettings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                <span>Settings</span>
+            </button>
         </div>
         <div class="nav-status">
             <div class="status-dot" id="statusDot"></div>
@@ -70,7 +76,15 @@
     <main class="view active" id="viewChat">
         <div class="chat-container">
             <div class="chat-header">
-                <h1>🛡️ Shielded Chat</h1>
+                <div class="chat-header-row">
+                    <h1>🛡️ Shielded Chat</h1>
+                    <button class="btn btn-ghost" id="newChatBtn" title="Start new conversation">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        New Chat
+                    </button>
+                </div>
                 <p>Your prompts are scanned for PII and injection attacks before reaching the AI</p>
             </div>
             <div class="chat-messages" id="chatMessages">
@@ -241,6 +255,131 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- ── VIEW 4: SETTINGS ── -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <main class="view" id="viewSettings">
+        <div class="settings-container">
+            <div class="settings-header">
+                <h1>⚙️ Settings</h1>
+                <p>Configure PromptShield to match your institution's requirements</p>
+            </div>
+
+            <div class="settings-grid">
+                <!-- System Prompt Section -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h3>🤖 System Prompt</h3>
+                        <span class="settings-badge">AI Personality</span>
+                    </div>
+                    <p class="settings-description">Define how the AI assistant behaves. This prompt is sent with every conversation.</p>
+                    <textarea id="settingsSystemPrompt" class="settings-textarea" rows="4" placeholder="You are a helpful assistant..."></textarea>
+                </div>
+
+                <!-- Custom ID Patterns Section -->
+                <div class="settings-card wide">
+                    <div class="settings-card-header">
+                        <h3>🆔 Custom ID Patterns</h3>
+                        <span class="settings-badge">PII Detection</span>
+                    </div>
+                    <p class="settings-description">
+                        Define patterns for your institution's IDs using a simple format:<br>
+                        <code>n</code> = number (0-9) &nbsp; <code>l</code> = letter (a-z, A-Z) &nbsp; <code>*</code> = any character<br>
+                        Other characters are matched literally. Example: <code>nnlllnnn</code> matches <code>12bce123</code>
+                    </p>
+                    <div class="patterns-list" id="patternsList">
+                        <!-- Dynamic pattern items will be added here -->
+                    </div>
+                    <button class="btn btn-ghost add-pattern-btn" id="addPatternBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Add Pattern
+                    </button>
+                </div>
+
+                <!-- Chat Settings -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h3>💬 Chat Settings</h3>
+                        <span class="settings-badge">Conversation</span>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <label for="settingsTemperature">Temperature</label>
+                        <div class="slider-container">
+                            <input type="range" id="settingsTemperature" min="0" max="2" step="0.1" value="0.7">
+                            <span class="slider-value" id="temperatureValue">0.7</span>
+                        </div>
+                        <p class="settings-hint">Lower = more focused, Higher = more creative</p>
+                    </div>
+
+                    <div class="settings-row">
+                        <label for="settingsMaxHistory">Memory Length</label>
+                        <div class="slider-container">
+                            <input type="range" id="settingsMaxHistory" min="2" max="50" step="2" value="20">
+                            <span class="slider-value" id="maxHistoryValue">20</span>
+                        </div>
+                        <p class="settings-hint">Number of messages to remember in conversation</p>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h3>🛡️ Security Settings</h3>
+                        <span class="settings-badge">Protection</span>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <label for="settingsStrictness">Block Strictness</label>
+                        <select id="settingsStrictness" class="settings-select">
+                            <option value="low">Low — Warn only</option>
+                            <option value="medium">Medium — Block critical threats</option>
+                            <option value="high" selected>High — Block all PII & threats</option>
+                        </select>
+                        <p class="settings-hint">How aggressively to block suspicious prompts</p>
+                    </div>
+
+                    <div class="settings-row">
+                        <label for="settingsMaxPII">Max PII Before Block</label>
+                        <div class="slider-container">
+                            <input type="range" id="settingsMaxPII" min="1" max="10" step="1" value="5">
+                            <span class="slider-value" id="maxPIIValue">5</span>
+                        </div>
+                        <p class="settings-hint">Number of PII entities before blocking (high strictness)</p>
+                    </div>
+                </div>
+
+                <!-- Institution Settings -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h3>🏛️ Institution</h3>
+                        <span class="settings-badge">Branding</span>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <label for="settingsInstitution">Institution Name</label>
+                        <input type="text" id="settingsInstitution" class="settings-input" placeholder="University Tech">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save/Load Actions -->
+            <div class="settings-actions">
+                <button class="btn btn-ghost" id="resetSettingsBtn">Reset to Defaults</button>
+                <button class="btn btn-primary" id="saveSettingsBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save Settings
+                </button>
             </div>
         </div>
     </main>

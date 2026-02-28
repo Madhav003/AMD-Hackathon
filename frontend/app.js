@@ -10,6 +10,16 @@ const state = {
     currentView: "chat",
     isConnected: false,
     charts: {},
+    // Conversation memory
+    conversationHistory: [],
+    systemPrompt: "You are PromptShield AI, a helpful and secure academic assistant. You provide accurate, educational responses while maintaining user privacy. Be concise but thorough.",
+    maxHistoryLength: 20, // Keep last 20 messages to avoid token limits
+    temperature: 0.7,
+    // Settings
+    customIdPatterns: [],
+    blockStrictness: "high",
+    maxPIIBeforeBlock: 5,
+    institutionName: "University Tech",
 };
 
 // ══════════════════════════════════════════════════════════════════════
@@ -21,7 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
     initChat();
     initScanner();
     initDashboard();
+    initSettings();
     checkConnection();
+    loadSettings(); // Load settings from backend
 });
 
 // ══════════════════════════════════════════════════════════════════════
@@ -147,6 +159,7 @@ async function checkConnection() {
 function initChat() {
     const input = document.getElementById("chatInput");
     const sendBtn = document.getElementById("sendBtn");
+    const newChatBtn = document.getElementById("newChatBtn");
 
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -161,6 +174,42 @@ function initChat() {
     });
 
     sendBtn.addEventListener("click", sendMessage);
+    newChatBtn.addEventListener("click", clearChat);
+}
+
+function clearChat() {
+    // Clear conversation history
+    state.conversationHistory = [];
+    
+    // Clear chat messages UI (keep only the welcome message)
+    const container = document.getElementById("chatMessages");
+    const welcomeMessage = container.querySelector(".system-message");
+    container.innerHTML = "";
+    
+    // Re-add welcome message
+    const msg = document.createElement("div");
+    msg.className = "message system-message";
+    msg.innerHTML = `
+        <div class="message-avatar system-avatar">🛡️</div>
+        <div class="message-content">
+            <div class="message-header">
+                <span class="message-sender">PromptShield</span>
+                <span class="message-time">System</span>
+            </div>
+            <div class="message-text">
+                Welcome to <strong>PromptShield Gateway</strong>! Every message you send is automatically scanned for:
+                <ul>
+                    <li>📧 <strong>PII</strong> — Emails, SSNs, credit cards, phone numbers, API keys, and more</li>
+                    <li>🚫 <strong>Prompt Injections</strong> — Jailbreaks, instruction overrides, indirect attacks</li>
+                    <li>🔐 <strong>Data Exfiltration</strong> — Hidden URLs, encoded payloads, Unicode tricks</li>
+                </ul>
+                Try pasting some sensitive data or a known jailbreak prompt to see the shield in action!
+            </div>
+        </div>
+    `;
+    container.appendChild(msg);
+    
+    showToast("Conversation cleared", "success");
 }
 
 async function sendMessage() {
@@ -171,8 +220,14 @@ async function sendMessage() {
     input.value = "";
     input.style.height = "auto";
 
-    // Add user message
+    // Add user message to UI and history
     addChatMessage("user", text);
+    state.conversationHistory.push({ role: "user", content: text });
+
+    // Trim history if too long
+    if (state.conversationHistory.length > state.maxHistoryLength) {
+        state.conversationHistory = state.conversationHistory.slice(-state.maxHistoryLength);
+    }
 
     // Show scanning indicator
     const indicator = document.getElementById("scanIndicator");
@@ -186,7 +241,12 @@ async function sendMessage() {
         const res = await fetch(`${API_BASE}/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: text }),
+            body: JSON.stringify({
+                prompt: text,
+                system_prompt: state.systemPrompt,
+                temperature: state.temperature,
+                conversation_history: state.conversationHistory.slice(0, -1), // Exclude current message
+            }),
         });
         const data = await res.json();
 
@@ -194,8 +254,12 @@ async function sendMessage() {
 
         if (data.blocked) {
             addSecurityMessage(data.security, text, data.block_reasons || []);
+            // Remove blocked message from history
+            state.conversationHistory.pop();
         } else {
             addAIMessage(data.response, data.security, text, data.token_usage);
+            // Add AI response to history
+            state.conversationHistory.push({ role: "assistant", content: data.response });
         }
     } catch {
         removeTypingIndicator(typingId);
@@ -203,12 +267,15 @@ async function sendMessage() {
         const demoResult = offlineScan(text);
         if (demoResult.blocked) {
             addSecurityMessage(demoResult.security, text);
+            state.conversationHistory.pop();
         } else {
+            const demoResponse = `🛡️ **[Offline Demo Mode]**\n\nYour prompt was scanned locally.\n\n**Sanitized prompt:**\n\`${demoResult.sanitizedText}\`\n\nConnect the backend for real AI responses.`;
             addAIMessage(
-                `🛡️ **[Offline Demo Mode]**\n\nYour prompt was scanned locally.\n\n**Sanitized prompt:**\n\`${demoResult.sanitizedText}\`\n\nConnect the backend for real AI responses.`,
+                demoResponse,
                 demoResult.security,
                 text
             );
+            state.conversationHistory.push({ role: "assistant", content: demoResponse });
         }
     }
 
@@ -866,4 +933,297 @@ function showToast(message, type = "info") {
         toast.classList.add("toast-exit");
         setTimeout(() => toast.remove(), 300);
     }, 3500);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════════════════════
+function initSettings() {
+    // Slider value displays
+    const tempSlider = document.getElementById("settingsTemperature");
+    const tempValue = document.getElementById("temperatureValue");
+    const historySlider = document.getElementById("settingsMaxHistory");
+    const historyValue = document.getElementById("maxHistoryValue");
+    const piiSlider = document.getElementById("settingsMaxPII");
+    const piiValue = document.getElementById("maxPIIValue");
+
+    if (tempSlider && tempValue) {
+        tempSlider.addEventListener("input", () => {
+            tempValue.textContent = tempSlider.value;
+        });
+    }
+
+    if (historySlider && historyValue) {
+        historySlider.addEventListener("input", () => {
+            historyValue.textContent = historySlider.value;
+        });
+    }
+
+    if (piiSlider && piiValue) {
+        piiSlider.addEventListener("input", () => {
+            piiValue.textContent = piiSlider.value;
+        });
+    }
+
+    // Add pattern button
+    const addPatternBtn = document.getElementById("addPatternBtn");
+    if (addPatternBtn) {
+        addPatternBtn.addEventListener("click", () => addPatternRow());
+    }
+
+    // Save settings button
+    const saveBtn = document.getElementById("saveSettingsBtn");
+    if (saveBtn) {
+        saveBtn.addEventListener("click", saveSettings);
+    }
+
+    // Reset settings button
+    const resetBtn = document.getElementById("resetSettingsBtn");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", resetSettings);
+    }
+}
+
+async function loadSettings() {
+    try {
+        const res = await fetch(`${API_BASE}/settings/full`);
+        if (!res.ok) throw new Error("Failed to load settings");
+        
+        const data = await res.json();
+        
+        // Update state
+        state.systemPrompt = data.system_prompt;
+        state.temperature = data.temperature;
+        state.maxHistoryLength = data.max_history_length;
+        state.blockStrictness = data.block_strictness;
+        state.maxPIIBeforeBlock = data.max_pii_before_block;
+        state.institutionName = data.institution_name;
+        state.customIdPatterns = data.custom_id_patterns || [];
+        
+        // Update UI
+        updateSettingsUI();
+    } catch (err) {
+        console.log("Using default settings (backend not available or no saved settings)");
+    }
+}
+
+function updateSettingsUI() {
+    // System prompt
+    const systemPromptEl = document.getElementById("settingsSystemPrompt");
+    if (systemPromptEl) systemPromptEl.value = state.systemPrompt;
+    
+    // Temperature
+    const tempSlider = document.getElementById("settingsTemperature");
+    const tempValue = document.getElementById("temperatureValue");
+    if (tempSlider) {
+        tempSlider.value = state.temperature;
+        if (tempValue) tempValue.textContent = state.temperature;
+    }
+    
+    // Max history
+    const historySlider = document.getElementById("settingsMaxHistory");
+    const historyValue = document.getElementById("maxHistoryValue");
+    if (historySlider) {
+        historySlider.value = state.maxHistoryLength;
+        if (historyValue) historyValue.textContent = state.maxHistoryLength;
+    }
+    
+    // Block strictness
+    const strictnessSelect = document.getElementById("settingsStrictness");
+    if (strictnessSelect) strictnessSelect.value = state.blockStrictness;
+    
+    // Max PII
+    const piiSlider = document.getElementById("settingsMaxPII");
+    const piiValue = document.getElementById("maxPIIValue");
+    if (piiSlider) {
+        piiSlider.value = state.maxPIIBeforeBlock;
+        if (piiValue) piiValue.textContent = state.maxPIIBeforeBlock;
+    }
+    
+    // Institution name
+    const institutionEl = document.getElementById("settingsInstitution");
+    if (institutionEl) institutionEl.value = state.institutionName;
+    
+    // Custom ID patterns
+    renderPatterns();
+}
+
+function renderPatterns() {
+    const container = document.getElementById("patternsList");
+    if (!container) return;
+    
+    container.innerHTML = "";
+    
+    state.customIdPatterns.forEach((pattern, index) => {
+        const item = createPatternRow(pattern, index);
+        container.appendChild(item);
+    });
+    
+    // If no patterns, add an empty one
+    if (state.customIdPatterns.length === 0) {
+        addPatternRow();
+    }
+}
+
+function createPatternRow(pattern = null, index = -1) {
+    const item = document.createElement("div");
+    item.className = "pattern-item";
+    item.dataset.index = index;
+    
+    const example = pattern?.pattern ? generatePatternExample(pattern.pattern) : "";
+    
+    item.innerHTML = `
+        <input type="text" class="pattern-name" placeholder="Label (e.g., Student ID)" 
+               value="${escapeHtml(pattern?.name || "")}">
+        <input type="text" class="pattern-format" placeholder="Pattern (e.g., nnlllnnn)" 
+               value="${escapeHtml(pattern?.pattern || "")}">
+        <div class="pattern-preview">${example || "Preview"}</div>
+        <button class="pattern-delete-btn" title="Remove pattern">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
+    
+    // Pattern format input - update preview on change
+    const formatInput = item.querySelector(".pattern-format");
+    const previewEl = item.querySelector(".pattern-preview");
+    formatInput.addEventListener("input", () => {
+        const example = generatePatternExample(formatInput.value);
+        previewEl.textContent = example || "Preview";
+    });
+    
+    // Delete button
+    const deleteBtn = item.querySelector(".pattern-delete-btn");
+    deleteBtn.addEventListener("click", () => {
+        item.remove();
+    });
+    
+    return item;
+}
+
+function addPatternRow() {
+    const container = document.getElementById("patternsList");
+    if (!container) return;
+    
+    const item = createPatternRow();
+    container.appendChild(item);
+}
+
+function generatePatternExample(pattern) {
+    if (!pattern) return "";
+    
+    let result = "";
+    const letters = "abcdefghijklmnopqrstuvwxyz";
+    const digits = "0123456789";
+    
+    for (const char of pattern) {
+        if (char === "n") {
+            result += digits[Math.floor(Math.random() * digits.length)];
+        } else if (char === "l") {
+            result += letters[Math.floor(Math.random() * letters.length)];
+        } else if (char === "*") {
+            const all = letters + digits;
+            result += all[Math.floor(Math.random() * all.length)];
+        } else {
+            result += char;
+        }
+    }
+    
+    return result;
+}
+
+function collectPatternsFromUI() {
+    const container = document.getElementById("patternsList");
+    if (!container) return [];
+    
+    const patterns = [];
+    const items = container.querySelectorAll(".pattern-item");
+    
+    items.forEach((item, index) => {
+        const name = item.querySelector(".pattern-name").value.trim();
+        const format = item.querySelector(".pattern-format").value.trim();
+        
+        if (format) {
+            patterns.push({
+                name: name || `Custom ID ${index + 1}`,
+                pattern: format,
+                label: name ? name.toUpperCase().replace(/\s+/g, "_") : `CUSTOM_ID_${index + 1}`,
+                category: "Academic",
+            });
+        }
+    });
+    
+    return patterns;
+}
+
+async function saveSettings() {
+    const saveBtn = document.getElementById("saveSettingsBtn");
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = `<span class="loading-spinner"></span> Saving...`;
+    saveBtn.disabled = true;
+    
+    try {
+        // Collect settings from UI
+        const settings = {
+            system_prompt: document.getElementById("settingsSystemPrompt")?.value || state.systemPrompt,
+            temperature: parseFloat(document.getElementById("settingsTemperature")?.value) || 0.7,
+            max_history_length: parseInt(document.getElementById("settingsMaxHistory")?.value) || 20,
+            block_strictness: document.getElementById("settingsStrictness")?.value || "high",
+            max_pii_before_block: parseInt(document.getElementById("settingsMaxPII")?.value) || 5,
+            institution_name: document.getElementById("settingsInstitution")?.value || "University Tech",
+            custom_id_patterns: collectPatternsFromUI(),
+        };
+        
+        // Update local state
+        state.systemPrompt = settings.system_prompt;
+        state.temperature = settings.temperature;
+        state.maxHistoryLength = settings.max_history_length;
+        state.blockStrictness = settings.block_strictness;
+        state.maxPIIBeforeBlock = settings.max_pii_before_block;
+        state.institutionName = settings.institution_name;
+        state.customIdPatterns = settings.custom_id_patterns;
+        
+        // Save to backend
+        const res = await fetch(`${API_BASE}/settings/full`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(settings),
+        });
+        
+        if (!res.ok) throw new Error("Failed to save settings");
+        
+        const result = await res.json();
+        showToast(`Settings saved! ${result.patterns_updated} patterns updated.`, "success");
+    } catch (err) {
+        // Settings still saved locally even if backend fails
+        showToast("Settings saved locally (backend unavailable)", "warning");
+    }
+    
+    saveBtn.innerHTML = originalText;
+    saveBtn.disabled = false;
+}
+
+async function resetSettings() {
+    if (!confirm("Reset all settings to defaults? This cannot be undone.")) return;
+    
+    try {
+        await fetch(`${API_BASE}/settings/reset`, { method: "POST" });
+    } catch {
+        // Continue with local reset even if backend fails
+    }
+    
+    // Reset local state
+    state.systemPrompt = "You are PromptShield AI, a helpful and secure academic assistant. You provide accurate, educational responses while maintaining user privacy. Be concise but thorough.";
+    state.temperature = 0.7;
+    state.maxHistoryLength = 20;
+    state.blockStrictness = "high";
+    state.maxPIIBeforeBlock = 5;
+    state.institutionName = "University Tech";
+    state.customIdPatterns = [];
+    
+    // Update UI
+    updateSettingsUI();
+    
+    showToast("Settings reset to defaults", "success");
 }

@@ -8,7 +8,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from config import settings
-from routes import proxy, dashboard
+from routes import proxy, dashboard, settings as settings_routes
 
 # ── Rate Limiter ───────────────────────────────────────────────────────
 limiter = Limiter(key_func=get_remote_address)
@@ -42,6 +42,7 @@ app.add_middleware(
 # ── Routes ─────────────────────────────────────────────────────────────
 app.include_router(proxy.router)
 app.include_router(dashboard.router)
+app.include_router(settings_routes.router)
 
 
 # ── Root ───────────────────────────────────────────────────────────────
