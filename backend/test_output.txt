@@ -1,0 +1,40 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.8, pytest-7.4.4, pluggy-1.6.0 -- C:\Users\patel\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\patel\Desktop\RYZEN AMD\backend
+plugins: anyio-3.7.1, asyncio-0.23.3
+asyncio: mode=Mode.STRICT
+collecting ... collected 30 items
+
+tests/test_injection.py::TestJailbreakDetection::test_dan_jailbreak PASSED [  3%]
+tests/test_injection.py::TestJailbreakDetection::test_ignore_instructions PASSED [  6%]
+tests/test_injection.py::TestJailbreakDetection::test_roleplay_escape PASSED [ 10%]
+tests/test_injection.py::TestDelimiterInjection::test_system_delimiter PASSED [ 13%]
+tests/test_injection.py::TestDelimiterInjection::test_im_start_token PASSED [ 16%]
+tests/test_injection.py::TestIndirectInjection::test_html_comment_injection PASSED [ 20%]
+tests/test_injection.py::TestIndirectInjection::test_data_exfil_attempt PASSED [ 23%]
+tests/test_injection.py::TestRefusalOverride::test_dont_refuse PASSED    [ 26%]
+tests/test_injection.py::TestSafePrompts::test_normal_question PASSED    [ 30%]
+tests/test_injection.py::TestSafePrompts::test_coding_question PASSED    [ 33%]
+tests/test_injection.py::TestSafePrompts::test_academic_question PASSED  [ 36%]
+tests/test_injection.py::TestSafePrompts::test_math_question PASSED      [ 40%]
+tests/test_injection.py::TestCombinedAttacks::test_multi_vector_attack PASSED [ 43%]
+tests/test_injection.py::TestCombinedAttacks::test_owasp_categories PASSED [ 46%]
+tests/test_pii.py::TestEmailDetection::test_basic_email PASSED           [ 50%]
+tests/test_pii.py::TestEmailDetection::test_multiple_emails PASSED       [ 53%]
+tests/test_pii.py::TestEmailDetection::test_no_email PASSED              [ 56%]
+tests/test_pii.py::TestSSNDetection::test_ssn_format PASSED              [ 60%]
+tests/test_pii.py::TestCreditCardDetection::test_card_with_spaces PASSED [ 63%]
+tests/test_pii.py::TestPhoneDetection::test_us_phone PASSED              [ 66%]
+tests/test_pii.py::TestIPDetection::test_ipv4 PASSED                     [ 70%]
+tests/test_pii.py::TestAPIKeyDetection::test_openai_key PASSED           [ 73%]
+tests/test_pii.py::TestAPIKeyDetection::test_aws_access_key PASSED       [ 76%]
+tests/test_pii.py::TestPasswordDetection::test_password_in_text PASSED   [ 80%]
+tests/test_pii.py::TestPersonDetection::test_name PASSED                 [ 83%]
+tests/test_pii.py::TestStudentIDDetection::test_student_id PASSED        [ 86%]
+tests/test_pii.py::TestCategoryMapping::test_identity_category PASSED    [ 90%]
+tests/test_pii.py::TestCategoryMapping::test_financial_category PASSED   [ 93%]
+tests/test_pii.py::TestSanitization::test_redaction_labels PASSED        [ 96%]
+tests/test_pii.py::TestSanitization::test_clean_text_no_pii PASSED       [100%]
+
+============================= 30 passed in 6.40s ==============================

@@ -1,0 +1,39 @@
+{
+    "institution_name": "University Tech",
+    "roll_number_regex": "\\b[A-Z]{2}\\d{4}-\\d{3}\\b",
+    "roll_number_label": "ROLL_NUMBER",
+    "block_strictness": "high",
+    "max_pii_before_block": 5,
+    "custom_patterns": [
+        {
+            "name": "Employee ID",
+            "regex": "\\bEMP-\\d{6}\\b",
+            "label": "EMPLOYEE_ID",
+            "redact_tag": "[REDACTED EMPLOYEE_ID]",
+            "category": "Academic"
+        },
+        {
+            "name": "Course Code",
+            "regex": "\\b[A-Z]{2,4}\\d{3,4}[A-Z]?\\b",
+            "label": "COURSE_CODE",
+            "redact_tag": "[REDACTED COURSE]",
+            "category": "Academic",
+            "context_required": [
+                "course",
+                "class",
+                "section",
+                "enroll"
+            ]
+        }
+    ],
+    "token_costs": {
+        "prompt_cost_per_1k": 0.0005,
+        "completion_cost_per_1k": 0.0015,
+        "currency": "USD",
+        "monthly_budget_limit": 50.00
+    },
+    "rate_limit": {
+        "requests_per_minute": 5,
+        "burst_limit": 10
+    }
+}
