@@ -74,7 +74,7 @@ class ThreatIntel:
     def _load_signatures(self) -> list[dict]:
         """Load known injection signatures from JSON database."""
         try:
-            with open(_SIGNATURES_PATH, "r") as f:
+            with open(_SIGNATURES_PATH, "r", encoding="utf-8") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return []

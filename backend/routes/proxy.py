@@ -222,19 +222,24 @@ async def chat_proxy(request: ChatRequest):
 
     if use_gemini:
         try:
-            import google.generativeai as genai
-            genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel(request.model or settings.GEMINI_MODEL)
+            from google import genai
+            client = genai.Client(api_key=settings.GEMINI_API_KEY)
+            
+            model_name = request.model or settings.GEMINI_MODEL
+            # Ensure model name has 'models/' prefix
+            if not model_name.startswith("models/"):
+                model_name = f"models/{model_name}"
 
             full_prompt = safe_prompt
             if request.system_prompt:
                 full_prompt = f"[System]: {request.system_prompt}\n\n[User]: {safe_prompt}"
 
-            response = model.generate_content(
-                full_prompt,
-                generation_config=genai.types.GenerationConfig(
-                    temperature=request.temperature or 0.7,
-                ),
+            response = client.models.generate_content(
+                model=model_name,
+                contents=full_prompt,
+                config={
+                    "temperature": request.temperature or 0.7,
+                },
             )
             response_text = response.text
             completion_tokens = _estimate_tokens(response_text)

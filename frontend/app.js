@@ -253,11 +253,12 @@ function addAIMessage(response, security, originalPrompt, tokenUsage) {
     let securityHtml = "";
     if (pii.pii_found) {
         securityHtml += `<div style="margin-top:8px">`;
-        securityHtml += `<strong style="color:var(--amber);font-size:0.8rem">PII Detected & Scrubbed:</strong><br>`;
+        securityHtml += `<strong style="color:var(--amber);font-size:0.8rem">PII Detected & Scrubbed:</strong>`;
+        securityHtml += `<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">`;
         pii.entities.forEach(e => {
-            securityHtml += `<span class="pii-highlight" title="${e.entity_type}">${escapeHtml(e.original)}</span> -> <span class="pii-tag">${e.redacted}</span> `;
+            securityHtml += `<div><span class="pii-highlight" title="${e.entity_type}">${escapeHtml(e.original)}</span> → <span class="pii-tag">${e.redacted}</span></div>`;
         });
-        securityHtml += `</div>`;
+        securityHtml += `</div></div>`;
     }
 
     // Token economics badge

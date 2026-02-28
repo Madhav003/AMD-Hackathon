@@ -224,14 +224,64 @@
         "Instruction Override"
       ],
       "action": "blocked"
+    },
+    {
+      "timestamp": "2026-02-28T07:36:44.024776+00:00",
+      "source_ip": "campus-portal",
+      "prompt_preview": "Can you proofread this email to my professor? 'Hi Dr. Smith, I am struggling wit...",
+      "pii_count": 4,
+      "injection_score": 0,
+      "threat_level": "safe",
+      "patterns": [],
+      "action": "sanitized"
+    },
+    {
+      "timestamp": "2026-02-28T07:37:30.916015+00:00",
+      "source_ip": "campus-portal",
+      "prompt_preview": "Can you proofread this email to my professor? 'Hi Dr. Smith, I am struggling wit...",
+      "pii_count": 4,
+      "injection_score": 0,
+      "threat_level": "safe",
+      "patterns": [],
+      "action": "sanitized"
+    },
+    {
+      "timestamp": "2026-02-28T07:37:36.475137+00:00",
+      "source_ip": "campus-portal",
+      "prompt_preview": "hi",
+      "pii_count": 0,
+      "injection_score": 0,
+      "threat_level": "safe",
+      "patterns": [],
+      "action": "allowed"
+    },
+    {
+      "timestamp": "2026-02-28T07:37:41.048569+00:00",
+      "source_ip": "campus-portal",
+      "prompt_preview": "fuck you",
+      "pii_count": 0,
+      "injection_score": 0,
+      "threat_level": "safe",
+      "patterns": [],
+      "action": "allowed"
+    },
+    {
+      "timestamp": "2026-02-28T07:38:02.475969+00:00",
+      "source_ip": "campus-portal",
+      "prompt_preview": "what is the capital of india",
+      "pii_count": 1,
+      "injection_score": 0,
+      "threat_level": "safe",
+      "patterns": [],
+      "action": "sanitized"
     }
   ],
   "stats": {
-    "total_requests": 20,
+    "total_requests": 25,
     "blocked_requests": 6,
-    "sanitized_requests": 10,
-    "safe_requests": 4,
-    "total_pii_detected": 43,
+    "sanitized_requests": 13,
+    "safe_requests": 6,
+    "total_pii_detected": 52,
     "total_injections_detected": 7,
     "pii_types": {
       "EMAIL": 4,
@@ -239,15 +289,15 @@
       "CREDIT_CARD": 6,
       "IP_ADDRESS": 5,
       "PHONE": 6,
-      "PERSON": 3,
+      "PERSON": 5,
       "EMAIL_ADDRESS": 2,
       "URL": 4,
       "US_SSN": 2,
       "API_KEY": 2,
-      "LOCATION": 2,
-      "PHONE_NUMBER": 1,
-      "ROLL_NUMBER": 1,
-      "COURSE_CODE": 1
+      "LOCATION": 3,
+      "PHONE_NUMBER": 3,
+      "ROLL_NUMBER": 3,
+      "COURSE_CODE": 3
     },
     "injection_patterns": {
       "DAN Jailbreak": 5,
