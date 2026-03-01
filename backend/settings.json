@@ -1,7 +1,5 @@
 {
     "institution_name": "University Tech",
-    "roll_number_regex": "\\b[A-Z]{2}\\d{4}-\\d{3}\\b",
-    "roll_number_label": "ROLL_NUMBER",
     "block_strictness": "high",
     "max_pii_before_block": 5,
     "custom_patterns": [
@@ -24,16 +22,41 @@
                 "section",
                 "enroll"
             ]
+        },
+        {
+            "name": "Student_ID",
+            "regex": "\\b\\d{2}[a-zA-Z]{3}\\d{3}\\b",
+            "label": "STUDENT_ID",
+            "redact_tag": "[REDACTED STUDENT_ID]",
+            "category": "Academic"
+        },
+        {
+            "name": "Student_ID",
+            "regex": "\\b\\d{2}[a-zA-Z]{3}\\d{3}\\b",
+            "label": "STUDENT_ID",
+            "redact_tag": "[REDACTED STUDENT_ID]",
+            "category": "Academic"
         }
     ],
     "token_costs": {
         "prompt_cost_per_1k": 0.0005,
         "completion_cost_per_1k": 0.0015,
         "currency": "USD",
-        "monthly_budget_limit": 50.00
+        "monthly_budget_limit": 50.0
     },
     "rate_limit": {
         "requests_per_minute": 5,
         "burst_limit": 10
-    }
+    },
+    "system_prompt": "You are PromptShield AI, a helpful and secure academic assistant. You provide accurate, educational responses while maintaining user privacy. Be concise.",
+    "temperature": 0.7,
+    "max_history_length": 20,
+    "custom_id_patterns": [
+        {
+            "name": "Student_ID",
+            "pattern": "nnlllnnn",
+            "label": "STUDENT_ID",
+            "category": "Academic"
+        }
+    ]
 }
